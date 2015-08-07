@@ -17,9 +17,11 @@ public class MahjongRule {
 
     private boolean ting = false;
     private List<Mahjong> mMahjongList = new ArrayList<Mahjong>();
+    private int mTingCount = 0;
     private int[] mMahjonsMap = new int[45];
     private int[] mMahjongs = new int[15];
     private int[] mUsedMahjongs = new int[15];
+    private int[] mTingMahjongs = new int[10];
 
     public MahjongRule(ArrayList<Mahjong> mahjongs) {
         mMahjongList = mahjongs;
@@ -40,19 +42,15 @@ public class MahjongRule {
     }
 
     public String checkChow(int n) {
-        if (mMahjonsMap[n - 2] != 0 && mMahjonsMap[n - 1] != 0 && n-2 > 0){
-            return String.valueOf(n)+","+String.valueOf(n-2)+","+String.valueOf(n-1);
-        }else if (mMahjonsMap[n - 1] != 0 && mMahjonsMap[n + 1] != 0 && n-1 > 0){
-            return String.valueOf(n)+","+String.valueOf(n-1)+","+String.valueOf(n+1);
-        }else if (mMahjonsMap[n + 1] != 0 && mMahjonsMap[n + 2] != 0){
-            return String.valueOf(n)+","+String.valueOf(n+1)+","+String.valueOf(n+2);
+        if (mMahjonsMap[n - 2] != 0 && mMahjonsMap[n - 1] != 0 && n - 2 > 0) {
+            return String.valueOf(n) + "," + String.valueOf(n - 2) + "," + String.valueOf(n - 1);
+        } else if (mMahjonsMap[n - 1] != 0 && mMahjonsMap[n + 1] != 0 && n - 1 > 0) {
+            return String.valueOf(n) + "," + String.valueOf(n - 1) + "," + String.valueOf(n + 1);
+        } else if (mMahjonsMap[n + 1] != 0 && mMahjonsMap[n + 2] != 0) {
+            return String.valueOf(n) + "," + String.valueOf(n + 1) + "," + String.valueOf(n + 2);
         } else {
             return "0";
         }
-    }
-
-    public void checkTing(){
-
     }
 
     public boolean checkWin(int n) {
@@ -64,11 +62,11 @@ public class MahjongRule {
         return mMahjonsMap[n] == 2 ? true : false;
     }
 
-    // 碰
+    // 碰(碰，杠，吃都缺少对已经使用方法的解决)
     public void pong(int n) {
         getOne(n);
         mMahjonsMap[n] -= 3;
-        usedMahjong(n,3);
+        usedMahjong(n, 3);
         sortMahjong();
     }
 
@@ -76,7 +74,7 @@ public class MahjongRule {
     public void kong(int n) {
         getOne(n);
         mMahjonsMap[n] -= 4;
-        usedMahjong(n,4);
+        usedMahjong(n, 4);
         sortMahjong();
     }
 
@@ -124,6 +122,52 @@ public class MahjongRule {
         return ting;
     }
 
+    public int[] getTingMahjongs() {
+        return mTingMahjongs;
+    }
+
+    //
+    private boolean checkThree(int n, int m, int l) {
+        if (2 * m == (n + l)) {
+            return true;
+        } else if (n == m && m == l) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    //
+    private boolean updataTing(int a, int b, int c, List<String> subMahjongs) {
+        boolean isThree = checkThree(a, b, c);
+        if (subMahjongs.size() > 1) {
+            int max = subMahjongs.size();
+            for (int i = 0; i < max; i++) {
+                List<String> tmpMahjongs = new ArrayList<String>();
+                for (String s : subMahjongs) {
+                    tmpMahjongs.add(s);
+                }
+                tmpMahjongs.remove(subMahjongs.get(i));
+                for (int j = i + 1; j < max; j++) {
+                    tmpMahjongs.remove(subMahjongs.get(j));
+                    for (int k = j + 1; k < max; k++) {
+                        tmpMahjongs.remove(subMahjongs.get(k));
+                        return updataTing(Integer.parseInt(subMahjongs.get(i)), Integer.parseInt(subMahjongs.get(j)),
+                                Integer.parseInt(subMahjongs.get(k)), tmpMahjongs);
+                    }
+                }
+            }
+        } else {
+            if (isThree) {
+                mTingMahjongs[mTingCount++] = Integer.parseInt(subMahjongs.get(0));
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return false;
+    }
+
     // 洗牌
     private void sortMahjong() {
         for (int i = 0; i < mMahjongList.size(); i++) {
@@ -144,7 +188,7 @@ public class MahjongRule {
         }
     }
 
-    private void usedMahjong (int n,int m){
+    private void usedMahjong(int n, int m) {
         for (int i = 0; i < m; i++) {
             for (int j = 0; j < mMahjongList.size(); j++) {
                 if (mMahjongList.get(j).number == n && !mMahjongList.get(j).isUsed()) {
