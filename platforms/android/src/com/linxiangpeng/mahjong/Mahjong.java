@@ -20,6 +20,7 @@ public class Mahjong {
     public String imgURL;
     public String name;
 
+    private boolean used= false;
     private String baseURL ="http://7xkomi.com1.z0.glb.clouddn.com/mahjong_";
 
     public Mahjong(int n) {
@@ -70,4 +71,11 @@ public class Mahjong {
         imgURL = baseURL + String.valueOf(number)+".PNG";
     }
 
+    public void setUsed(boolean use){
+        used=use;
+    }
+
+    public boolean isUsed() {
+        return used;
+    }
 }
