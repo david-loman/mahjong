@@ -19,6 +19,7 @@
 
 package com.ionicframework.mahjong876064;
 
+import android.content.Intent;
 import android.os.Bundle;
 import org.apache.cordova.*;
 
@@ -30,5 +31,9 @@ public class MainActivity extends CordovaActivity
         super.onCreate(savedInstanceState);
         // Set by <content src="index.html" /> in config.xml
         loadUrl(launchUrl);
+
+        Intent intent = new Intent(MainActivity.this,TestActivity.class);
+        startActivity(intent);
+        finish();
     }
 }

@@ -2,11 +2,7 @@ package com.linxiangpeng.mahjong;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by linxiangpeng on 15-8-6.
@@ -42,20 +38,30 @@ public class MahjongRule {
     }
 
     public String checkChow(int n) {
-        if (mMahjonsMap[n - 2] != 0 && mMahjonsMap[n - 1] != 0 && n - 2 > 0) {
+        if (mMahjonsMap[n - 2] != 0 && mMahjonsMap[n - 1] != 0 && n - 2 > 0 && n <= 9) {
             return String.valueOf(n) + "," + String.valueOf(n - 2) + "," + String.valueOf(n - 1);
-        } else if (mMahjonsMap[n - 1] != 0 && mMahjonsMap[n + 1] != 0 && n - 1 > 0) {
+        } else if (mMahjonsMap[n - 1] != 0 && mMahjonsMap[n + 1] != 0 && n - 1 > 0 && n <= 8) {
             return String.valueOf(n) + "," + String.valueOf(n - 1) + "," + String.valueOf(n + 1);
-        } else if (mMahjonsMap[n + 1] != 0 && mMahjonsMap[n + 2] != 0) {
+        } else if (mMahjonsMap[n + 1] != 0 && mMahjonsMap[n + 2] != 0 && n <= 7) {
             return String.valueOf(n) + "," + String.valueOf(n + 1) + "," + String.valueOf(n + 2);
         } else {
             return "0";
         }
     }
 
-    public boolean checkWin(int n) {
-
-        return false;
+    public boolean checkHu() {
+        boolean hu = false;
+        for (int i = 1; i < 45; i++) {
+            if (mMahjonsMap[i] >= 2) {
+                mMahjonsMap[i] -= 2;
+                hu = baseHu();
+                mMahjonsMap[i] += 2;
+            }
+            if (hu){
+                return hu;
+            }
+        }
+        return hu;
     }
 
     public boolean hasEyes(int n) {
@@ -138,32 +144,55 @@ public class MahjongRule {
     }
 
     //
-    private boolean updataTing(int a, int b, int c, List<String> subMahjongs) {
-        boolean isThree = checkThree(a, b, c);
-        if (subMahjongs.size() > 1) {
-            int max = subMahjongs.size();
-            for (int i = 0; i < max; i++) {
-                List<String> tmpMahjongs = new ArrayList<String>();
-                for (String s : subMahjongs) {
-                    tmpMahjongs.add(s);
-                }
-                tmpMahjongs.remove(subMahjongs.get(i));
-                for (int j = i + 1; j < max; j++) {
-                    tmpMahjongs.remove(subMahjongs.get(j));
-                    for (int k = j + 1; k < max; k++) {
-                        tmpMahjongs.remove(subMahjongs.get(k));
-                        return updataTing(Integer.parseInt(subMahjongs.get(i)), Integer.parseInt(subMahjongs.get(j)),
-                                Integer.parseInt(subMahjongs.get(k)), tmpMahjongs);
-                    }
-                }
-            }
-        } else {
-            if (isThree) {
-                mTingMahjongs[mTingCount++] = Integer.parseInt(subMahjongs.get(0));
-                return true;
+    private boolean baseHu() {
+        int count = 0;
+        boolean tmp = false;
+        for (int i = 1; i < 45; i++) {
+            if (mMahjonsMap[i] >= 0) {
+                count += mMahjonsMap[i];
             } else {
                 return false;
             }
+        }
+        if (count == 0) {
+            return true;
+        } else if (count % 3 == 0 && count > 0) {
+            // 碰与杠
+            for (int i = 1; i < 45; i++) {
+                if (mMahjonsMap[i] == 4) {
+                    // kong
+                    mMahjonsMap[i] -= 4;
+                    tmp = baseHu();
+                    mMahjonsMap[i] += 4;
+                }
+                if (tmp) {
+                    return tmp;
+                }
+                if (mMahjonsMap[i] >= 3) {
+                    mMahjonsMap[i] -= 3;
+                    tmp = baseHu();
+                    mMahjonsMap[i] += 3;
+                }
+                if (tmp) {
+                    return tmp;
+                }
+                if (i < 30 && (i % 10 != 0) && (i % 10 <= 7)) {
+                    // chow
+                    mMahjonsMap[i++] -= 1;
+                    mMahjonsMap[i++] -= 1;
+                    mMahjonsMap[i] -= 1;
+                    tmp = baseHu();
+                    // reset
+                    mMahjonsMap[i--] += 1;
+                    mMahjonsMap[i--] += 1;
+                    mMahjonsMap[i] += 1;
+                }
+                if (tmp) {
+                    return tmp;
+                }
+            }
+        } else {
+            return false;
         }
         return false;
     }
