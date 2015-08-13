@@ -19,6 +19,8 @@ public class MahjongRule {
     private int[] mUsedMahjongs = new int[15];
     private int[] mTingMahjongs = new int[10];
 
+    public ArrayList<String> tingList;
+
     public MahjongRule(ArrayList<Mahjong> mahjongs) {
         mMahjongList = mahjongs;
         init();
@@ -54,7 +56,7 @@ public class MahjongRule {
         for (int i = 1; i < 45; i++) {
             if (mMahjonsMap[i] >= 2) {
                 mMahjonsMap[i] -= 2;
-                hu = baseHu();
+                hu = baseHu(0);
                 mMahjonsMap[i] += 2;
             }
             if (hu){
@@ -62,6 +64,19 @@ public class MahjongRule {
             }
         }
         return hu;
+    }
+
+    public boolean checkTing(){
+        boolean tmp =false;
+        tingList = new ArrayList<String>();
+        mTingCount = 0;
+        for(int i=0;i< 45;i++){
+            if (mMahjonsMap[i] > 0){
+                mMahjonsMap[i]--;
+                tmp =(baseHu(1) || baseHu(2));
+            }
+        }
+        return tmp;
     }
 
     public boolean hasEyes(int n) {
@@ -133,18 +148,7 @@ public class MahjongRule {
     }
 
     //
-    private boolean checkThree(int n, int m, int l) {
-        if (2 * m == (n + l)) {
-            return true;
-        } else if (n == m && m == l) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    //
-    private boolean baseHu() {
+    private boolean baseHu(int type) {
         int count = 0;
         boolean tmp = false;
         for (int i = 1; i < 45; i++) {
@@ -154,7 +158,23 @@ public class MahjongRule {
                 return false;
             }
         }
-        if (count == 0) {
+        if ((count-type) == 0) {
+            // 判断听的牌（补丁）
+            if (type == 4){
+                int result=1;
+                int c=0;
+                for(int i=1;i<45;i++){
+                    if (mMahjonsMap[i]>=0){
+                        c++;
+                        result=result*mMahjonsMap[i];
+                    }
+                    if (c==2 && result == 4){
+                        return true;
+                    }else {
+                        return false;
+                    }
+                }
+            }
             return true;
         } else if (count % 3 == 0 && count > 0) {
             // 碰与杠
@@ -162,7 +182,7 @@ public class MahjongRule {
                 if (mMahjonsMap[i] == 4) {
                     // kong
                     mMahjonsMap[i] -= 4;
-                    tmp = baseHu();
+                    tmp = baseHu(type);
                     mMahjonsMap[i] += 4;
                 }
                 if (tmp) {
@@ -170,7 +190,7 @@ public class MahjongRule {
                 }
                 if (mMahjonsMap[i] >= 3) {
                     mMahjonsMap[i] -= 3;
-                    tmp = baseHu();
+                    tmp = baseHu(type);
                     mMahjonsMap[i] += 3;
                 }
                 if (tmp) {
@@ -181,7 +201,7 @@ public class MahjongRule {
                     mMahjonsMap[i++] -= 1;
                     mMahjonsMap[i++] -= 1;
                     mMahjonsMap[i] -= 1;
-                    tmp = baseHu();
+                    tmp = baseHu(type);
                     // reset
                     mMahjonsMap[i--] += 1;
                     mMahjonsMap[i--] += 1;
